@@ -11,7 +11,7 @@
       class="editor-right"
       v-model="output"
       theme="hc-black"
-      :options="editorOptions"
+      :options="editorOptionsOutput"
       language="lua"
       @editorDidMount="editorDidMount" />
     <transition name="fade">
@@ -34,16 +34,30 @@ import { editor } from 'monaco-editor'
 import * as fengari from 'fengari-web'
 
 const tl = `
+package.path = "https://raw.githubusercontent.com/teal-language/tl/master/?.lua"
+os = { getenv = function (str) return '' end }
 local tl = require('tl')
 
-function gen (code_str)
-  local output, result = tl.gen(code_str)
-  return output, result
+function error_string(category, errors)
+   local result = ''
+   if not errors then
+      return result
+   end
+   if #errors > 0 then
+      local n = #errors
+      result = result .. n .. " " .. category .. (n ~= 1 and "s" or "")
+      for _, err in ipairs(errors) do
+         result = result .. err.y .. ":" .. err.x .. ": " .. (err.msg or "")
+      end
+      return result
+   end
+
+   return result
 end
 
-local output, result = gen([[%code%]])
-local syntax_error = tl.error_string('syntax', result.syntax_errors)
-local type_error = tl.error_string('type', result.type_errors)
+local output, result = tl.gen([[%code%]])
+local syntax_error = error_string('syntax', result.syntax_errors)
+local type_error = error_string('type', result.type_errors)
 
 return { output, syntax_error, type_error }
 `
@@ -53,18 +67,37 @@ export default Vue.extend({
   components: { MonacoEditor },
   data () {
     return {
-      code: 'local message:string = "hello world"',
-      output: 'local message:string = "hello world"',
+      code: `local Point = record
+    x: number
+    y: number
+end
+function Point.new(p: string|Point)
+    print("hello")
+    if p is Point then
+      print("hello")
+    else
+      print(p.x)
+    end
+end`,
+      output: '',
       syntaxErrors: null,
       typeErrors: null,
       loadError: null,
       editorInput: null as editor.IStandaloneCodeEditor | null,
       editorOutput: null as editor.IStandaloneCodeEditor | null,
       editorOptions: {
-        fontSize: '20px',
+        fontSize: 20,
         minimap: {
           enabled: false
         }
+      } as editor.IEditorOptions
+    }
+  },
+  computed: {
+    editorOptionsOutput (): editor.IEditorOptions {
+      return {
+        ...this.editorOptions,
+        readOnly: true
       }
     }
   },
