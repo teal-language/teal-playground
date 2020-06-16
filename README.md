@@ -1,4 +1,4 @@
-# tl playground
+# teal playground
 
 [teal-language/tl](https://github.com/teal-language/tl) browser playground.
 
