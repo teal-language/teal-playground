@@ -1,29 +1,32 @@
 <template>
   <div id="playground">
-    <MonacoEditor
-      class="editor-left"
-      v-model="code"
-      theme="hc-black"
-      :options="editorOptions"
-      language="lua"
-      @editorDidMount="editorDidMount" />
-    <MonacoEditor
-      class="editor-right"
-      v-model="output"
-      theme="hc-black"
-      :options="editorOptionsOutput"
-      language="lua"
-      @editorDidMount="editorDidMount" />
-    <transition name="fade">
-      <div v-if="syntaxErrors || loadError" class="error">
-        {{loadError || syntaxErrors}}
-      </div>
-    </transition>
-    <transition name="fade">
-      <div v-if="typeErrors" class="type-error">
-        {{typeErrors}}
-      </div>
-    </transition>
+    <Toolbar @snippetSelected="snippet => (input = snippet.code)" />
+    <div class="editors">
+      <MonacoEditor
+        class="editor-left"
+        v-model="input"
+        theme="hc-black"
+        :options="editorOptions"
+        language="lua"
+        @editorDidMount="editorDidMount" />
+      <MonacoEditor
+        class="editor-right"
+        v-model="output"
+        theme="hc-black"
+        :options="editorOptionsOutput"
+        language="lua"
+        @editorDidMount="editorDidMount" />
+      <transition name="fade">
+        <div v-if="syntaxErrors || loadError" class="error">
+          {{loadError || syntaxErrors}}
+        </div>
+      </transition>
+      <transition name="fade">
+        <div v-if="typeErrors" class="type-error">
+          {{typeErrors}}
+        </div>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -32,6 +35,8 @@ import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
 import { editor } from 'monaco-editor'
 import * as fengari from 'fengari-web'
+import basic from '@/snippets/basic'
+import Toolbar from '@/components/Toolbar.vue'
 
 const tl = `
 package.path = "https://raw.githubusercontent.com/teal-language/tl/master/?.lua"
@@ -55,7 +60,7 @@ function error_string(category, errors)
    return result
 end
 
-local output, result = tl.gen([[%code%]])
+local output, result = tl.gen([[%input%]])
 local syntax_error = error_string('syntax', result.syntax_errors)
 local type_error = error_string('type', result.type_errors)
 
@@ -64,21 +69,10 @@ return { output, syntax_error, type_error }
 
 export default Vue.extend({
   name: 'Playground',
-  components: { MonacoEditor },
+  components: { MonacoEditor, Toolbar },
   data () {
     return {
-      code: `local Point = record
-    x: number
-    y: number
-end
-function Point.new(p: string|Point)
-    print("hello")
-    if p is Point then
-      print("hello")
-    else
-      print(p.x)
-    end
-end`,
+      input: `${basic.code}`,
       output: '',
       syntaxErrors: null,
       typeErrors: null,
@@ -89,7 +83,8 @@ end`,
         fontSize: 20,
         minimap: {
           enabled: false
-        }
+        },
+        renderIndentGuides: false
       } as editor.IEditorOptions
     }
   },
@@ -102,7 +97,7 @@ end`,
     }
   },
   watch: {
-    code: {
+    input: {
       immediate: true,
       deep: true,
       handler (newValue: string): void {
@@ -111,7 +106,7 @@ end`,
             this.output = ''
             return
           }
-          const out = fengari.load(tl.replace('%code%', newValue))()
+          const out = fengari.load(tl.replace('%input%', newValue))()
           this.loadError = null
           this.output = out.get(1) || this.output
           this.syntaxErrors = out.get(2) || null
@@ -138,42 +133,12 @@ end`,
 
   mounted (): void {
     window.onresize = () => {
-      console.log(window.innerWidth / 2)
       if (this.editorInput && this.editorOutput && window) {
         this.editorInput.layout({ width: window.innerWidth / 2, height: window.innerHeight })
         this.editorOutput.layout({ width: window.innerWidth / 2, height: window.innerHeight })
       }
     }
   }
-  // const timeout = ref(null)
-
-  // onMounted(() => {
-  // const inputEditor = monaco.editor.create(document.getElementById('input'), {
-  //   value: code.value,
-  //   language: 'lua',
-  //   minimap: {
-  //     enabled: false
-  //   }
-  // })
-  // const outputEditor = monaco.editor.create(document.getElementById('output'), {
-  //   value: code.value,
-  //   language: 'lua',
-  //   readOnly: true,
-  //   minimap: {
-  //     enabled: false
-  //   }
-  // })
-  // window.addEventListener('keyup', (ev) => {
-  //   if (timeout.value) {
-  //     clearTimeout(timeout.value)
-  //   }
-  //   timeout.value = setTimeout(() => {
-  //     code.value = inputEditor.getValue()
-  //     // @ts-ignore
-  //     outputEditor.setValue(output.value)
-  //   }, 250)
-  // })
-  // })
 })
 </script>
 
@@ -182,6 +147,12 @@ end`,
   display: flex;
   flex: 1;
   font-size: 20px;
+}
+
+.editors {
+  margin-top: calc(40px + 1rem);
+  display: flex;
+  flex: 1;
 }
 
 .editor-left, .editor-right {
