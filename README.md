@@ -1,34 +1,18 @@
-# tl-playground
+# tl playground
 
-## Project setup
-```
-npm install
-```
+[teal-language/tl](https://github.com/teal-language/tl) browser playground.
 
-### Compiles and hot-reloads for development
+### Setup
 ```
-npm run serve
+yarn install
 ```
 
-### Compiles and minifies for production
+### Development
 ```
-npm run build
-```
-
-### Run your unit tests
-```
-npm run test:unit
+yarn serve
 ```
 
-### Run your end-to-end tests
+### Build for deployment
 ```
-npm run test:e2e
+yarn build
 ```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
