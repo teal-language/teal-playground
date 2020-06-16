@@ -13,6 +13,7 @@
     "@vue/composition-api": "^0.6.3",
     "core-js": "^3.6.5",
     "fengari-web": "^0.1.4",
+    "monaco-editor": "^0.20.0",
     "vue": "^2.6.11",
     "vue-monaco": "^1.2.1"
   },

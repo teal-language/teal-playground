@@ -1,1 +1,1 @@
-declare module 'vue-monaco'
+declare module 'vue-monaco' {}

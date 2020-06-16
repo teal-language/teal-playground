@@ -4,19 +4,23 @@
       class="editor-left"
       v-model="code"
       theme="hc-black"
-      language="lua" />
+      :options="editorOptions"
+      language="lua"
+      @editorDidMount="editorDidMount" />
     <MonacoEditor
       class="editor-right"
       v-model="output"
       theme="hc-black"
-      language="lua" />
+      :options="editorOptions"
+      language="lua"
+      @editorDidMount="editorDidMount" />
     <transition name="fade">
-      <div v-if="syntaxErrors" class="error">
-        {{syntaxErrors}}
+      <div v-if="syntaxErrors || loadError" class="error">
+        {{loadError || syntaxErrors}}
       </div>
     </transition>
     <transition name="fade">
-      <div v-if="typeErrors" class="type-error" :style="{bottom: syntaxErrors ? '50px' : '0'}">
+      <div v-if="typeErrors" class="type-error">
         {{typeErrors}}
       </div>
     </transition>
@@ -26,6 +30,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
+import { editor } from 'monaco-editor'
 import * as fengari from 'fengari-web'
 
 const tl = `
@@ -51,7 +56,16 @@ export default Vue.extend({
       code: 'local message:string = "hello world"',
       output: 'local message:string = "hello world"',
       syntaxErrors: null,
-      typeErrors: null
+      typeErrors: null,
+      loadError: null,
+      editorInput: null as editor.IStandaloneCodeEditor | null,
+      editorOutput: null as editor.IStandaloneCodeEditor | null,
+      editorOptions: {
+        fontSize: '20px',
+        minimap: {
+          enabled: false
+        }
+      }
     }
   },
   watch: {
@@ -60,14 +74,41 @@ export default Vue.extend({
       deep: true,
       handler (newValue: string): void {
         try {
+          if (newValue === '') {
+            this.output = ''
+            return
+          }
           const out = fengari.load(tl.replace('%code%', newValue))()
+          this.loadError = null
           this.output = out.get(1) || this.output
           this.syntaxErrors = out.get(2) || null
           this.typeErrors = out.get(3) || null
         } catch (err) {
-          // this.error = err
+          this.loadError = err
           console.log(err)
         }
+      }
+    }
+  },
+
+  methods: {
+    editorDidMount (editor: editor.IStandaloneCodeEditor): void {
+      const isInput = parseInt(editor.getId().split(':')[1]) % 2 === 0
+
+      if (isInput) {
+        this.editorInput = editor
+      } else {
+        this.editorOutput = editor
+      }
+    }
+  },
+
+  mounted (): void {
+    window.onresize = () => {
+      console.log(window.innerWidth / 2)
+      if (this.editorInput && this.editorOutput && window) {
+        this.editorInput.layout({ width: window.innerWidth / 2, height: window.innerHeight })
+        this.editorOutput.layout({ width: window.innerWidth / 2, height: window.innerHeight })
       }
     }
   }
@@ -107,6 +148,7 @@ export default Vue.extend({
 #playground {
   display: flex;
   flex: 1;
+  font-size: 20px;
 }
 
 .editor-left, .editor-right {
@@ -122,7 +164,7 @@ export default Vue.extend({
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: auto;
   display: flex;
   align-items: center;
   padding: 1rem 2rem 1rem;
@@ -138,7 +180,7 @@ export default Vue.extend({
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 50px
+  height: auto;
 }
 .fade-enter-active, .fade-leave-active {
   transition: opacity .5s;
