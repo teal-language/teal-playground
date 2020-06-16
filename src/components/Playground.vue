@@ -60,7 +60,8 @@ function error_string(category, errors)
    return result
 end
 
-local output, result = tl.gen([[%input%]])
+local env = tl.init_env(false, true)
+local output, result = tl.gen([[%input%]], env)
 local syntax_error = error_string('syntax', result.syntax_errors)
 local type_error = error_string('type', result.type_errors)
 
