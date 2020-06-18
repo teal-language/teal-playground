@@ -35,7 +35,7 @@ export default Vue.extend({
   display: flex;
   align-items: center;
   padding: 0.5rem 1rem 0.5rem;
-  border-bottom: 1px solid #5FB6D7;
+  border-bottom: 1px solid teal;
   background: black;
 }
 
@@ -46,6 +46,6 @@ select:not([type="radio"]):read-only {
   height: 30px;
   width: 100px;
   background-color: black;
-  color: #5FB6D7
+  color: teal
 }
 </style>

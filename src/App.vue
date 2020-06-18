@@ -1,14 +1,19 @@
 <template>
   <div id="app">
+    <GitHubCorner repo="https://github.com/teal-language/teal-playground" />
     <Playground />
   </div>
 </template>
 
 <script lang="ts">
+import GitHubCorner from '@/components/GitHubCorner.vue'
 import Playground from '@/components/Playground.vue'
 
 export default {
-  components: { Playground }
+  components: {
+    Playground,
+    GitHubCorner
+  }
 }
 </script>
 
