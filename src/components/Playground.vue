@@ -16,16 +16,6 @@
         :options="editorOptionsOutput"
         language="lua"
         @editorDidMount="editorDidMount" />
-      <transition name="fade">
-        <div v-if="syntaxErrors || loadError" class="error">
-          {{loadError || syntaxErrors}}
-        </div>
-      </transition>
-      <transition name="fade">
-        <div v-if="typeErrors" class="type-error">
-          {{typeErrors}}
-        </div>
-      </transition>
     </div>
   </div>
 </template>
@@ -33,7 +23,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
-import { editor } from 'monaco-editor'
+import { editor, Range } from 'monaco-editor'
 import * as fengari from 'fengari-web'
 import basic from '@/snippets/basic'
 import Toolbar from '@/components/Toolbar.vue'
@@ -43,29 +33,10 @@ package.path = "https://raw.githubusercontent.com/teal-language/tl/master/?.lua"
 os = { getenv = function (str) return '' end }
 local tl = require('tl')
 
-function error_string(category, errors)
-   local result = ''
-   if not errors then
-      return result
-   end
-   if #errors > 0 then
-      local n = #errors
-      result = result .. n .. " " .. category .. (n ~= 1 and "s" or "")
-      for _, err in ipairs(errors) do
-         result = result .. err.y .. ":" .. err.x .. ": " .. (err.msg or "")
-      end
-      return result
-   end
-
-   return result
-end
-
 local env = tl.init_env(false, true)
 local output, result = tl.gen([[%input%]], env)
-local syntax_error = error_string('syntax', result.syntax_errors)
-local type_error = error_string('type', result.type_errors)
 
-return { output, syntax_error, type_error }
+return { output, result.syntax_errors, result.type_errors }
 `
 
 export default Vue.extend({
@@ -78,6 +49,7 @@ export default Vue.extend({
       syntaxErrors: null,
       typeErrors: null,
       loadError: null,
+      decorations: [] as string[],
       editorInput: null as editor.IStandaloneCodeEditor | null,
       editorOutput: null as editor.IStandaloneCodeEditor | null,
       editorOptions: {
@@ -110,8 +82,53 @@ export default Vue.extend({
           const out = fengari.load(tl.replace('%input%', newValue))()
           this.loadError = null
           this.output = out.get(1) || this.output
-          this.syntaxErrors = out.get(2) || null
-          this.typeErrors = out.get(3) || null
+          const syntaxErrors = out.get(2) || null
+          const typeErrors = out.get(3) || null
+          const decorations = []
+          let d = 0
+
+          let i = 1
+          while (syntaxErrors.has(i)) {
+            const err = syntaxErrors.get(i)
+            const y = err.get('y')
+            const x = err.get('x')
+            const msg = err.get('msg')
+            console.log(msg)
+
+            decorations[d] = {
+              range: new Range(y, x, y, x),
+              options: { inlineClassName: 'syntax-error' }
+            }
+            d++
+
+            i++
+          }
+
+          i = 1
+          while (typeErrors.has(i)) {
+            const err = typeErrors.get(i)
+            const y = err.get('y')
+            const x = err.get('x')
+            const msg = err.get('msg')
+            console.log(msg)
+
+            decorations[d] = {
+              range: new Range(y, x, y, x + 1),
+              options: { inlineClassName: 'type-error' }
+            }
+            d++
+
+            i++
+          }
+
+          if (this.editorInput) {
+            if (decorations.length > 0) {
+              console.log('DECORATIONS! ' + decorations[0])
+              this.decorations = this.editorInput.deltaDecorations(this.decorations, decorations)
+            } else {
+              this.decorations = this.editorInput.deltaDecorations(this.decorations, [])
+            }
+          }
         } catch (err) {
           this.loadError = err
           console.log(err)
@@ -122,7 +139,7 @@ export default Vue.extend({
 
   methods: {
     editorDidMount (editor: editor.IStandaloneCodeEditor): void {
-      const isInput = parseInt(editor.getId().split(':')[1]) % 2 === 0
+      const isInput = parseInt(editor.getId().split(':')[1]) % 2 === 1
 
       if (isInput) {
         this.editorInput = editor
@@ -169,24 +186,24 @@ export default Vue.extend({
   bottom: 0;
   left: 0;
   width: 100%;
-  height: auto;
+  height: 50%;
   display: flex;
   align-items: center;
   padding: 1rem 2rem 1rem;
 }
+
+.syntax-error {
+  color: orange !important;
+  text-decoration: underline;
+  font-weight: bold;
+}
+
 .type-error {
-  background-color: #0089eb;
-  display: flex;
-  align-items: center;
-  padding: 1rem 2rem 1rem;
-  font-family: monospace;
-  color: white;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
+  color: red !important;
+  text-decoration: underline;
+  font-weight: bold;
 }
+
 .fade-enter-active, .fade-leave-active {
   transition: opacity .5s;
 }
