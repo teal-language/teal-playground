@@ -39,6 +39,11 @@ local output, result = tl.gen([[%input%]], env)
 return { output, result.syntax_errors, result.type_errors }
 `
 
+type LuaTableJs = {
+  get: (index: number) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  has: (index: number) => boolean;
+}
+
 export default Vue.extend({
   name: 'Playground',
   components: { MonacoEditor, Toolbar },
@@ -79,13 +84,11 @@ export default Vue.extend({
             this.output = ''
             return
           }
-          const out = fengari.load(tl.replace('%input%', newValue))()
+          const out: LuaTableJs = fengari.load(tl.replace('%input%', newValue))()
           this.loadError = null
           this.output = out.get(1) || this.output
           const syntaxErrors = out.get(2) || null
           const typeErrors = out.get(3) || null
-          const markers = []
-          let d = 0
 
           if (!this.editorInput) {
             return
@@ -96,68 +99,11 @@ export default Vue.extend({
             return
           }
 
-          let i = 1
-          while (syntaxErrors.has(i)) {
-            const err = syntaxErrors.get(i)
-            const y = err.get('y')
-            const x = err.get('x')
-            const msg = err.get('msg')
-            console.log(msg)
-
-            const word = model.getWordAtPosition(new Position(y, x))
-
-            let start = x
-            let end = x
-            if (word) {
-              start = word.startColumn
-              end = word.endColumn
-            }
-            markers[d] = {
-              startLineNumber: y,
-              startColumn: start,
-              endLineNumber: y,
-              endColumn: end,
-              message: msg,
-              severity: MarkerSeverity.Error
-            }
-            d++
-
-            i++
-          }
-
-          i = 1
-          while (typeErrors.has(i)) {
-            const err = typeErrors.get(i)
-            const y = err.get('y')
-            const x = err.get('x')
-            const msg = err.get('msg')
-            console.log(msg)
-
-            const word = model.getWordAtPosition(new Position(y, x))
-
-            let start = x
-            let end = x
-            if (word) {
-              start = word.startColumn
-              end = word.endColumn
-            }
-            markers[d] = {
-              startLineNumber: y,
-              startColumn: start,
-              endLineNumber: y,
-              endColumn: end,
-              message: msg,
-              severity: MarkerSeverity.Error
-            }
-            d++
-
-            i++
-          }
-
+          const markers = this.getMarkers(model, syntaxErrors, typeErrors)
           editor.setModelMarkers(model, 'owner', markers)
         } catch (err) {
           this.loadError = err
-          console.log(err)
+          console.error(err)
         }
       }
     }
@@ -172,6 +118,48 @@ export default Vue.extend({
       } else {
         this.editorOutput = editor
       }
+    },
+
+    buildErrorMarkers (model: editor.ITextModel, errors: LuaTableJs) {
+      const markers: editor.IMarkerData[] = []
+
+      let i = 1
+      while (errors.has(i)) {
+        const err = errors.get(i)
+        const y = err.get('y')
+        const x = err.get('x')
+        const message = err.get('msg')
+        const word = model.getWordAtPosition(new Position(y, x))
+
+        let startColumn = x
+        let endColumn = x
+
+        if (word) {
+          startColumn = word.startColumn
+          endColumn = word.endColumn
+        }
+
+        markers.push({
+          message,
+          startLineNumber: y,
+          startColumn,
+          endLineNumber: y,
+          endColumn,
+          severity: MarkerSeverity.Error
+        })
+        i++
+      }
+
+      return markers
+    },
+
+    getMarkers (model: editor.ITextModel, syntaxErrors: LuaTableJs, typeErrors: LuaTableJs) {
+      const markers = [
+        ...this.buildErrorMarkers(model, syntaxErrors),
+        ...this.buildErrorMarkers(model, typeErrors)
+      ]
+
+      return markers
     }
   },
 
