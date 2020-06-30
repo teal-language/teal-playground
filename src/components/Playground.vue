@@ -23,7 +23,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
-import { editor, Range } from 'monaco-editor'
+import { editor, Range, Position } from 'monaco-editor'
 import * as fengari from 'fengari-web'
 import basic from '@/snippets/basic'
 import Toolbar from '@/components/Toolbar.vue'
@@ -87,6 +87,15 @@ export default Vue.extend({
           const decorations = []
           let d = 0
 
+          if (!this.editorInput) {
+            return
+          }
+
+          const model = this.editorInput.getModel()
+          if (!model) {
+            return
+          }
+
           let i = 1
           while (syntaxErrors.has(i)) {
             const err = syntaxErrors.get(i)
@@ -95,11 +104,15 @@ export default Vue.extend({
             const msg = err.get('msg')
             console.log(msg)
 
-            decorations[d] = {
-              range: new Range(y, x, y, x),
-              options: { inlineClassName: 'syntax-error' }
+            const word = model.getWordAtPosition(new Position(y, x))
+
+            if (word) {
+              decorations[d] = {
+                range: new Range(y, word.startColumn, y, word.endColumn),
+                options: { inlineClassName: 'syntax-error' }
+              }
+              d++
             }
-            d++
 
             i++
           }
@@ -112,11 +125,15 @@ export default Vue.extend({
             const msg = err.get('msg')
             console.log(msg)
 
-            decorations[d] = {
-              range: new Range(y, x, y, x + 1),
-              options: { inlineClassName: 'type-error' }
+            const word = model.getWordAtPosition(new Position(y, x))
+
+            if (word) {
+              decorations[d] = {
+                range: new Range(y, word.startColumn, y, word.endColumn),
+                options: { inlineClassName: 'type-error' }
+              }
+              d++
             }
-            d++
 
             i++
           }
