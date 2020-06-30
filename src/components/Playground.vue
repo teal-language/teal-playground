@@ -23,7 +23,7 @@
 <script lang="ts">
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
-import { editor, Range, Position } from 'monaco-editor'
+import { editor, MarkerSeverity, Position } from 'monaco-editor'
 import * as fengari from 'fengari-web'
 import basic from '@/snippets/basic'
 import Toolbar from '@/components/Toolbar.vue'
@@ -49,7 +49,7 @@ export default Vue.extend({
       syntaxErrors: null,
       typeErrors: null,
       loadError: null,
-      decorations: [] as string[],
+      markers: [] as editor.IMarkerData[],
       editorInput: null as editor.IStandaloneCodeEditor | null,
       editorOutput: null as editor.IStandaloneCodeEditor | null,
       editorOptions: {
@@ -84,7 +84,7 @@ export default Vue.extend({
           this.output = out.get(1) || this.output
           const syntaxErrors = out.get(2) || null
           const typeErrors = out.get(3) || null
-          const decorations = []
+          const markers = []
           let d = 0
 
           if (!this.editorInput) {
@@ -106,13 +106,21 @@ export default Vue.extend({
 
             const word = model.getWordAtPosition(new Position(y, x))
 
+            let start = x
+            let end = x
             if (word) {
-              decorations[d] = {
-                range: new Range(y, word.startColumn, y, word.endColumn),
-                options: { inlineClassName: 'syntax-error' }
-              }
-              d++
+              start = word.startColumn
+              end = word.endColumn
             }
+            markers[d] = {
+              startLineNumber: y,
+              startColumn: start,
+              endLineNumber: y,
+              endColumn: end,
+              message: msg,
+              severity: MarkerSeverity.Error
+            }
+            d++
 
             i++
           }
@@ -127,25 +135,26 @@ export default Vue.extend({
 
             const word = model.getWordAtPosition(new Position(y, x))
 
+            let start = x
+            let end = x
             if (word) {
-              decorations[d] = {
-                range: new Range(y, word.startColumn, y, word.endColumn),
-                options: { inlineClassName: 'type-error' }
-              }
-              d++
+              start = word.startColumn
+              end = word.endColumn
             }
+            markers[d] = {
+              startLineNumber: y,
+              startColumn: start,
+              endLineNumber: y,
+              endColumn: end,
+              message: msg,
+              severity: MarkerSeverity.Error
+            }
+            d++
 
             i++
           }
 
-          if (this.editorInput) {
-            if (decorations.length > 0) {
-              console.log('DECORATIONS! ' + decorations[0])
-              this.decorations = this.editorInput.deltaDecorations(this.decorations, decorations)
-            } else {
-              this.decorations = this.editorInput.deltaDecorations(this.decorations, [])
-            }
-          }
+          editor.setModelMarkers(model, 'owner', markers)
         } catch (err) {
           this.loadError = err
           console.log(err)
