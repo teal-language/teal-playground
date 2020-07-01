@@ -7,7 +7,7 @@
         v-model="input"
         theme="hc-black"
         :options="editorOptions"
-        language="lua"
+        language="teal"
         @editorDidMount="editorDidMount" />
       <MonacoEditor
         class="editor-right"
@@ -23,10 +23,18 @@
 <script lang="ts">
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
-import { editor, MarkerSeverity, Position } from 'monaco-editor'
+import { languages, editor, MarkerSeverity, Position } from 'monaco-editor'
+import { tealMonacoLanguage, tealMonacoLanguageConfiguration } from '@/teal-monaco-language'
 import * as fengari from 'fengari-web'
 import basic from '@/snippets/basic'
 import Toolbar from '@/components/Toolbar.vue'
+
+// Register a new language
+languages.register({ id: 'teal' })
+
+// Register a tokens provider for the language
+languages.setMonarchTokensProvider('teal', tealMonacoLanguage)
+languages.setLanguageConfiguration('teal', tealMonacoLanguageConfiguration)
 
 const tl = `
 package.path = "https://raw.githubusercontent.com/teal-language/tl/master/?.lua"
