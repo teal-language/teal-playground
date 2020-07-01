@@ -41,7 +41,7 @@ export const tealMonacoLanguage = <ILanguage>{
     'end', 'false', 'for', 'function', 'goto', 'if',
     'in', 'local', 'nil', 'not', 'or',
     'repeat', 'return', 'then', 'true', 'until', 'while',
-    'record', 'enum', 'functiontype', 'const', 'as', 'is'
+    'record', 'enum', 'functiontype', 'const', 'as', 'is', 'global'
   ],
 
   typeKeywords: [
