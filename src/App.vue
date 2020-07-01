@@ -1,18 +1,25 @@
 <template>
   <div id="app">
     <GitHubCorner repo="https://github.com/teal-language/teal-playground" />
-    <Playground />
+    <Storage v-slot="{ load, save }">
+      <Playground
+        :initialData="load"
+        @input="save"
+      />
+    </Storage>
   </div>
 </template>
 
 <script lang="ts">
 import GitHubCorner from '@/components/GitHubCorner.vue'
 import Playground from '@/components/Playground.vue'
+import Storage from '@/components/Storage'
 
 export default {
   components: {
     Playground,
-    GitHubCorner
+    GitHubCorner,
+    Storage
   }
 }
 </script>
