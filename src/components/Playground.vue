@@ -42,7 +42,7 @@ os = { getenv = function (str) return '' end }
 local tl = require('tl')
 
 local env = tl.init_env(false, true)
-local output, result = tl.gen([[%input%]], env)
+local output, result = tl.gen(%input%, env)
 
 return { output, result.syntax_errors, result.type_errors }
 `
@@ -92,7 +92,7 @@ export default Vue.extend({
             this.output = ''
             return
           }
-          const out: LuaTableJs = fengari.load(tl.replace('%input%', newValue))()
+          const out: LuaTableJs = fengari.load(tl.replace('%input%', JSON.stringify(newValue)))()
           this.loadError = null
           this.output = out.get(1) || this.output
           const syntaxErrors = out.get(2) || null
