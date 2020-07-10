@@ -26,7 +26,7 @@ import MonacoEditor from 'vue-monaco'
 import { languages, editor, MarkerSeverity, Position } from 'monaco-editor'
 import { tealMonacoLanguage, tealMonacoLanguageConfiguration } from '@/teal-monaco-language'
 import * as fengari from 'fengari-web'
-import basic from '@/snippets/basic'
+
 import Toolbar from '@/components/Toolbar.vue'
 
 // Register a new language
@@ -55,9 +55,16 @@ type LuaTableJs = {
 export default Vue.extend({
   name: 'Playground',
   components: { MonacoEditor, Toolbar },
+  props: {
+    initialData: {
+      type: Function,
+      required: false,
+      default: function () { return '' }
+    }
+  },
   data () {
     return {
-      input: `${basic.code}`,
+      input: this.initialData(),
       output: '',
       syntaxErrors: null,
       typeErrors: null,
@@ -92,6 +99,7 @@ export default Vue.extend({
             this.output = ''
             return
           }
+          this.$emit('input', newValue)
           const out: LuaTableJs = fengari.load(tl.replace('%input%', JSON.stringify(newValue)))()
           this.loadError = null
           this.output = out.get(1) || this.output
