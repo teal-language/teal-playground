@@ -7,7 +7,7 @@
         v-model="input"
         theme="hc-black"
         :options="editorOptions"
-        language="lua"
+        language="teal"
         @editorDidMount="editorDidMount" />
       <MonacoEditor
         class="editor-right"
@@ -23,10 +23,18 @@
 <script lang="ts">
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
-import { editor, MarkerSeverity, Position } from 'monaco-editor'
+import { languages, editor, MarkerSeverity, Position } from 'monaco-editor'
+import { tealMonacoLanguage, tealMonacoLanguageConfiguration } from '@/teal-monaco-language'
 import * as fengari from 'fengari-web'
 
 import Toolbar from '@/components/Toolbar.vue'
+
+// Register a new language
+languages.register({ id: 'teal' })
+
+// Register a tokens provider for the language
+languages.setMonarchTokensProvider('teal', tealMonacoLanguage)
+languages.setLanguageConfiguration('teal', tealMonacoLanguageConfiguration)
 
 const tl = `
 package.path = "https://raw.githubusercontent.com/teal-language/tl/master/?.lua"
@@ -34,7 +42,7 @@ os = { getenv = function (str) return '' end }
 local tl = require('tl')
 
 local env = tl.init_env(false, true)
-local output, result = tl.gen([[%input%]], env)
+local output, result = tl.gen(%input%, env)
 
 return { output, result.syntax_errors, result.type_errors }
 `
@@ -91,8 +99,8 @@ export default Vue.extend({
             this.output = ''
             return
           }
-          this.$emit('input', newValue)
-          const out: LuaTableJs = fengari.load(tl.replace('%input%', newValue))()
+          this.$emit('input', JSON.stringify(newValue))
+          const out: LuaTableJs = fengari.load(tl.replace('%input%', JSON.stringify(newValue)))()
           this.loadError = null
           this.output = out.get(1) || this.output
           const syntaxErrors = out.get(2) || null
