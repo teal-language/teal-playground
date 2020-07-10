@@ -99,7 +99,7 @@ export default Vue.extend({
             this.output = ''
             return
           }
-          this.$emit('input', JSON.stringify(newValue))
+          this.$emit('input', newValue)
           const out: LuaTableJs = fengari.load(tl.replace('%input%', JSON.stringify(newValue)))()
           this.loadError = null
           this.output = out.get(1) || this.output
