@@ -2,7 +2,7 @@ import { Snippet } from '../../types'
 
 export default {
   label: 'records',
-  code: `local Point = record
+  code: `local record Point
   x: number
   y: number
 end

@@ -7,7 +7,7 @@ export default {
 -- a limited set of string constants to describe an
 -- enumeration of possible values.
 
-local Direction = enum
+local enum Direction
    "north"
    "south"
    "east"
