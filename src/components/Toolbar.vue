@@ -1,6 +1,6 @@
 <template>
   <div class="toolbar">
-    <select v-model="selectedSnippet" @change="e => $emit('snippetSelected', snippets.find(s => s.label == selectedSnippet))">
+    <select v-model="selectedSnippetLabel" @change="e => $emit('snippetSelected', snippets.find(s => s.label == selectedSnippetLabel))">
       <option v-for="snippet in snippets" v-bind:value="snippet.label" :key="snippet.label">
         {{ snippet.label }}
       </option>
@@ -9,19 +9,19 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import { ref, Ref } from '@vue/composition-api'
+import { ref, defineComponent } from '@vue/composition-api'
 import snippets from '@/snippets'
 import { Snippet } from '../../types/index'
 
-export default Vue.extend({
+export default defineComponent({
   name: 'Toolbar',
   setup () {
-    const selectableSnippets = ref(Object.values(snippets)) as Ref<Snippet[]>
-    const selectedSnippet = ref(selectableSnippets.value[0].label)
+    const selectableSnippets = ref<Snippet[]>(Object.values(snippets))
+    const selectedSnippetLabel = ref(selectableSnippets.value[0].label)
+
     return {
       snippets: selectableSnippets,
-      selectedSnippet
+      selectedSnippetLabel
     }
   }
 })

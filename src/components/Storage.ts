@@ -1,10 +1,9 @@
-import Vue from 'vue'
-import { ref } from '@vue/composition-api'
+import { defineComponent, ref } from '@vue/composition-api'
 import basic from '@/snippets/basic'
 
 const STORAGE_KEY = 'tl-playground'
 
-export default Vue.extend({
+export default defineComponent({
   setup (_, context) {
     const timer = ref()
 
