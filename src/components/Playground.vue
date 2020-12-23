@@ -37,7 +37,7 @@ languages.setMonarchTokensProvider('teal', tealMonacoLanguage)
 languages.setLanguageConfiguration('teal', tealMonacoLanguageConfiguration)
 
 const tl = `
-package.path = "https://raw.githubusercontent.com/teal-language/tl/master/?.lua"
+package.path = "${process.env.VUE_APP_TL_PACKAGE_PATH_URL}"
 os = { getenv = function (str) return '' end }
 local tl = require('tl')
 
