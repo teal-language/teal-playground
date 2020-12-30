@@ -10,12 +10,15 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@tailwindcss/postcss7-compat": "^2.0.2",
     "@vue/composition-api": "^0.6.3",
     "core-js": "^3.6.5",
     "fengari-web": "^0.1.4",
     "monaco-editor": "^0.20.0",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat",
     "vue": "^2.6.11",
-    "vue-monaco": "^1.2.1"
+    "vue-monaco": "^1.2.1",
+    "vue-resize-split-pane": "^0.1.5"
   },
   "devDependencies": {
     "@types/jest": "^24.0.19",
