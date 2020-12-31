@@ -8,7 +8,10 @@ module.exports = {
   theme: {
     colors: {
       ...colors,
-      teal: colors.teal
+      teal: {
+        ...colors.teal,
+        950: '#143c3c'
+      }
     }
   },
   variants: { },

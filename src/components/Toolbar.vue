@@ -1,5 +1,5 @@
 <template>
-  <div class="border-b-2 border-teal-600 bg-black w-full absolute h-12 flex items-center p-2">
+  <div class="border-b-2 border-teal-950 bg-black w-full absolute h-12 flex items-center p-2">
     <a href="https://github.com/teal-language/tl" class="mr-3 h-full">
       <Logo />
     </a>
