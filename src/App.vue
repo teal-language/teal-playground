@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" class="flex bg-black font-mono h-screen m-0 p-0">
     <GitHubCorner repo="https://github.com/teal-language/teal-playground" />
     <Storage v-slot="{ load, save }">
       <Playground
@@ -23,27 +23,3 @@ export default {
   }
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
-  display: flex;
-  flex: 1;
-}
-body {
-  display: flex;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  font: normal 16px/1.4em -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
-  text-rendering: optimizeLegibility;
-}
-</style>

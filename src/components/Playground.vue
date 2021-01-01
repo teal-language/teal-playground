@@ -1,21 +1,36 @@
 <template>
-  <div id="playground">
+  <div class="bg-black flex flex-1">
     <Toolbar @snippetSelected="snippet => (input = snippet.code)" />
-    <div class="editors">
-      <MonacoEditor
-        class="editor-left"
-        v-model="input"
-        theme="hc-black"
-        :options="editorOptions"
-        language="teal"
-        @editorDidMount="editorDidMount" />
-      <MonacoEditor
-        class="editor-right"
-        v-model="output"
-        theme="hc-black"
-        :options="editorOptionsOutput"
-        language="lua"
-        @editorDidMount="editorDidMount" />
+    <div class="flex flex-1 mt-14 bg-black overflow-scroll">
+      <split-pane
+        @update:size="resizeSplit"
+        :allow-resize="true"
+        units="pixels"
+        :size="initialWidth"
+        class="bg-black"
+      >
+        <template #firstPane>
+          <div class="flex flex-1">
+            <MonacoEditor
+              v-model="input"
+              theme="hc-black"
+              :options="editorOptions"
+              language="teal"
+              @editorDidMount="editorDidMount"
+            />
+          </div>
+        </template>
+        <template #secondPane>
+          <div class="flex flex-1">
+            <MonacoEditor
+              v-model="output"
+              theme="hc-black"
+              :options="editorOptionsOutput"
+              language="lua"
+              @editorDidMount="editorDidMount" />
+          </div>
+        </template>
+      </split-pane>
     </div>
   </div>
 </template>
@@ -24,8 +39,12 @@
 import Vue from 'vue'
 import MonacoEditor from 'vue-monaco'
 import { languages, editor, MarkerSeverity, Position } from 'monaco-editor'
-import { tealMonacoLanguage, tealMonacoLanguageConfiguration } from '@/teal-monaco-language'
+import {
+  tealMonacoLanguage,
+  tealMonacoLanguageConfiguration
+} from '@/teal-monaco-language'
 import * as fengari from 'fengari-web'
+import SplitPane from 'vue-resize-split-pane'
 
 import Toolbar from '@/components/Toolbar.vue'
 
@@ -54,7 +73,7 @@ type LuaTableJs = {
 
 export default Vue.extend({
   name: 'Playground',
-  components: { MonacoEditor, Toolbar },
+  components: { MonacoEditor, Toolbar, SplitPane },
   props: {
     initialData: {
       type: Function,
@@ -65,6 +84,7 @@ export default Vue.extend({
   data () {
     return {
       input: this.initialData(),
+      initialWidth: 0,
       output: '',
       syntaxErrors: null,
       typeErrors: null,
@@ -169,76 +189,48 @@ export default Vue.extend({
       return markers
     },
 
-    getMarkers (model: editor.ITextModel, syntaxErrors: LuaTableJs, typeErrors: LuaTableJs) {
+    getMarkers (
+      model: editor.ITextModel,
+      syntaxErrors: LuaTableJs,
+      typeErrors: LuaTableJs
+    ): editor.IMarkerData[] {
       const markers = [
         ...this.buildErrorMarkers(model, syntaxErrors),
         ...this.buildErrorMarkers(model, typeErrors)
       ]
 
       return markers
+    },
+
+    resizeAll () {
+      this.initialWidth = window.innerWidth / 2
+      this.resizeEditor(this.editorInput, this.initialWidth)
+      this.resizeEditor(this.editorOutput, this.initialWidth)
+    },
+
+    /**
+     * @param{number} width - pixels
+     */
+    resizeSplit (width: number) {
+      this.resizeEditor(this.editorInput, width)
+      this.resizeEditor(this.editorOutput, window.innerWidth - width)
+    },
+
+    resizeEditor (editor: editor.IStandaloneCodeEditor | null, width: number) {
+      if (editor && window) {
+        editor.layout({
+          width,
+          height: window.innerHeight
+        })
+      }
     }
   },
 
   mounted (): void {
+    this.resizeAll()
     window.onresize = () => {
-      if (this.editorInput && this.editorOutput && window) {
-        this.editorInput.layout({ width: window.innerWidth / 2, height: window.innerHeight })
-        this.editorOutput.layout({ width: window.innerWidth / 2, height: window.innerHeight })
-      }
+      this.resizeAll()
     }
   }
 })
 </script>
-
-<style>
-#playground {
-  display: flex;
-  flex: 1;
-  font-size: 20px;
-}
-
-.editors {
-  margin-top: calc(40px + 1rem);
-  display: flex;
-  flex: 1;
-}
-
-.editor-left, .editor-right {
-  flex: 1 1 30%;
-  width: 50%;
-}
-
-.error {
-  background-color: #f47171;
-  font-family: monospace;
-  color: white;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 50%;
-  display: flex;
-  align-items: center;
-  padding: 1rem 2rem 1rem;
-}
-
-.syntax-error {
-  color: orange !important;
-  text-decoration: underline;
-  font-weight: bold;
-}
-
-.type-error {
-  color: red !important;
-  text-decoration: underline;
-  font-weight: bold;
-}
-
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .5s;
-}
-
-.fade-enter, .fade-leave-to {
-  opacity: 0;
-}
-</style>
