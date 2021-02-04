@@ -60,7 +60,7 @@ package.path = "${process.env.VUE_APP_TL_PACKAGE_PATH_URL}"
 os = { getenv = function (str) return '' end }
 local tl = require('tl')
 
-local env = tl.init_env(false, true)
+local env = tl.init_env(false, false, true)
 local output, result = tl.gen(%input%, env)
 
 return { output, result.syntax_errors, result.type_errors }
