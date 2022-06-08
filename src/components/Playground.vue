@@ -57,7 +57,13 @@ languages.setLanguageConfiguration('teal', tealMonacoLanguageConfiguration)
 
 const tl = `
 package.path = "${process.env.VUE_APP_TL_PACKAGE_PATH_URL}"
-os = { getenv = function (str) return '' end }
+os = {
+  getenv = function (var)
+    if var == 'TL_PATH' then
+      return ''
+    end
+  end
+}
 local tl = require('tl')
 
 local env = tl.init_env(false, false, true)
