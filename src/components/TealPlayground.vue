@@ -1,7 +1,6 @@
 <template>
   <div class="bg-black flex flex-1">
     <TealToolbar @snippetSelected="snippet => (input = snippet.code)" />
-
     <div class="flex flex-1 mt-14 bg-black overflow-scroll">
       <split-pane
         @update:size="resizeSplit"
