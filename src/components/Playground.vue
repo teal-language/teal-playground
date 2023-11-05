@@ -43,10 +43,13 @@ import {
   tealMonacoLanguage,
   tealMonacoLanguageConfiguration
 } from '@/teal-monaco-language'
-import * as fengari from 'fengari-web'
 import SplitPane from 'vue-resize-split-pane'
 
 import Toolbar from '@/components/Toolbar.vue'
+import TealError from '@/TealError'
+
+import CompilerWorker from '@/CompilerWorker.ts?worker'
+const compilerWorker = new CompilerWorker()
 
 // Register a new language
 languages.register({ id: 'teal' })
@@ -55,29 +58,7 @@ languages.register({ id: 'teal' })
 languages.setMonarchTokensProvider('teal', tealMonacoLanguage)
 languages.setLanguageConfiguration('teal', tealMonacoLanguageConfiguration)
 
-const tl = `
-package.path = "${process.env.VUE_APP_TL_PACKAGE_PATH_URL}"
-os = {
-  getenv = function (var)
-    if var == 'TL_PATH' then
-      return ''
-    end
-  end
-}
-local tl = require('tl')
-
-local env = tl.init_env(false, false, true)
-local output, result = tl.gen(%input%, env)
-
-return { output, result.syntax_errors, result.type_errors }
-`
-
-type LuaTableJs = {
-  get: (index: number) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  has: (index: number) => boolean;
-}
-
-export default Vue.extend({
+const Playground = Vue.extend({
   name: 'Playground',
   components: { MonacoEditor, Toolbar, SplitPane },
   props: {
@@ -94,7 +75,6 @@ export default Vue.extend({
       output: '',
       syntaxErrors: null,
       typeErrors: null,
-      loadError: null,
       markers: [] as editor.IMarkerData[],
       editorInput: null as editor.IStandaloneCodeEditor | null,
       editorOutput: null as editor.IStandaloneCodeEditor | null,
@@ -120,33 +100,12 @@ export default Vue.extend({
       immediate: true,
       deep: true,
       handler (newValue: string): void {
-        try {
-          if (newValue === '') {
-            this.output = ''
-            return
-          }
-          this.$emit('input', newValue)
-          const out: LuaTableJs = fengari.load(tl.replace('%input%', JSON.stringify(newValue)))()
-          this.loadError = null
-          this.output = out.get(1) || this.output
-          const syntaxErrors = out.get(2) || null
-          const typeErrors = out.get(3) || null
-
-          if (!this.editorInput) {
-            return
-          }
-
-          const model = this.editorInput.getModel()
-          if (!model) {
-            return
-          }
-
-          const markers = this.getMarkers(model, syntaxErrors, typeErrors)
-          editor.setModelMarkers(model, 'owner', markers)
-        } catch (err) {
-          this.loadError = err
-          console.error(err)
+        if (newValue === '') {
+          this.output = ''
+          return
         }
+        this.$emit('input', newValue)
+        compilerWorker.postMessage(["compile", newValue])
       }
     }
   },
@@ -160,17 +119,17 @@ export default Vue.extend({
       } else {
         this.editorOutput = editor
       }
+
+      this.resizeAll()
     },
 
-    buildErrorMarkers (model: editor.ITextModel, errors: LuaTableJs) {
+    buildErrorMarkers (model: editor.ITextModel, errors: [TealError]) {
       const markers: editor.IMarkerData[] = []
 
-      let i = 1
-      while (errors.has(i)) {
-        const err = errors.get(i)
-        const y = err.get('y')
-        const x = err.get('x')
-        const message = err.get('msg')
+      for (let err in errors) {
+        const y = err.y
+        const x = err.x
+        const message = err.msg
         const word = model.getWordAtPosition(new Position(y, x))
 
         let startColumn = x
@@ -189,7 +148,6 @@ export default Vue.extend({
           endColumn,
           severity: MarkerSeverity.Error
         })
-        i++
       }
 
       return markers
@@ -225,10 +183,30 @@ export default Vue.extend({
     resizeEditor (editor: editor.IStandaloneCodeEditor | null, width: number) {
       if (editor && window) {
         editor.layout({
-          width,
+          width: width,
           height: window.innerHeight
         })
       }
+    },
+
+    onCompiled (
+      output: string,
+      syntaxErrors: [TealError],
+      typeErrors: [TealError]
+    ) {
+      this.output = output || this.output
+
+      if (!this.editorInput) {
+        return
+      }
+
+      const model = this.editorInput.getModel()
+      if (!model) {
+        return
+      }
+
+      const markers = this.getMarkers(model, syntaxErrors, typeErrors)
+      editor.setModelMarkers(model, 'owner', markers)
     }
   },
 
@@ -237,6 +215,26 @@ export default Vue.extend({
     window.onresize = () => {
       this.resizeAll()
     }
+
+    compilerWorker.onmessage = (msg) => {
+      switch (msg.data[0]) {
+        case "compiled":
+          const output = msg.data[1]
+          const syntaxErrors = msg.data[2]
+          const typeErrors = msg.data[3]
+
+          this.onCompiled(output, syntaxErrors, typeErrors)
+          break;
+
+        case "error":
+          const err = msg[1]
+
+          console.error(err)
+          break;
+      }
+    }
   }
 })
+
+export default Playground
 </script>
