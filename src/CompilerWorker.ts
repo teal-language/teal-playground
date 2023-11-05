@@ -25,24 +25,24 @@ const convertErrorArray = (tbl) => {
     return null
   }
 
-  let array: [TealError] = []
+  const array: [TealError] = []
   let i = 1
   while (tbl.has(i)) {
-    let obj = tbl.get(i)
-    let error: TealError = {
+    const obj = tbl.get(i)
+    const error: TealError = {
       y: obj.get('y'),
       x: obj.get('x'),
       msg: obj.get('msg')
     }
-    array[i - 1] = error;
-    i++;
+    array[i - 1] = error
+    i++
   }
 
   return array
 }
 
 onmessage = (msg) => {
-  if (msg.data[0] == "compile") {
+  if (msg.data[0] === 'compile') {
     const newValue = msg.data[1]
 
     try {
@@ -52,9 +52,9 @@ onmessage = (msg) => {
       const syntaxErrors = convertErrorArray(out.get(2))
       const typeErrors = convertErrorArray(out.get(3))
 
-      postMessage(["compiled", output, syntaxErrors, typeErrors])
+      postMessage(['compiled', output, syntaxErrors, typeErrors])
     } catch (err) {
-      postMessage(["error", err])
+      postMessage(['error', err])
     }
   }
 }
