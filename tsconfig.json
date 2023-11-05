@@ -23,6 +23,7 @@
       ]
     },
     "lib": [
+      "webworker",
       "esnext",
       "dom",
       "dom.iterable",

@@ -3,11 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/postcss7-compat": "^2.0.2",
@@ -16,33 +14,18 @@
     "fengari-web": "^0.1.4",
     "monaco-editor": "^0.20.0",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat",
-    "vue": "^2.6.11",
+    "vue": "~2.6.14",
     "vue-monaco": "^1.2.1",
     "vue-resize-split-pane": "^0.1.5"
   },
   "devDependencies": {
     "@types/jest": "^24.0.19",
-    "@typescript-eslint/eslint-plugin": "^2.33.0",
-    "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-babel": "~4.5.9",
-    "@vue/cli-plugin-eslint": "~4.5.9",
-    "@vue/cli-plugin-router": "~4.5.9",
-    "@vue/cli-plugin-typescript": "~4.5.9",
-    "@vue/cli-plugin-unit-jest": "~4.5.9",
-    "@vue/cli-plugin-vuex": "~4.5.9",
-    "@vue/cli-service": "~4.5.9",
-    "@vue/eslint-config-standard": "^5.1.2",
-    "@vue/eslint-config-typescript": "^5.0.2",
-    "@vue/test-utils": "^1.0.3",
-    "eslint": "^6.7.2",
-    "eslint-plugin-import": "^2.20.2",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "eslint-plugin-vue": "^6.2.2",
-    "monaco-editor-webpack-plugin": "^1.9.0",
+    "@vitejs/plugin-vue": "^1.6.1",
     "typescript": "~3.9.3",
-    "vue-template-compiler": "^2.6.11"
+    "vite": "^2.5.4",
+    "vite-plugin-vue2": "1.9.0",
+    "vite-plugin-require": "~1.1.11",
+    "vue-template-compiler": "~2.6.14"
   },
   "resolutions": {
     "node-forge": "0.10.0",
