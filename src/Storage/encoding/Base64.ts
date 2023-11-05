@@ -1,7 +1,7 @@
 import { Encoder } from './'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Constructor<T = {}> = new (...args: any[]) => T;
+type Constructor<T = unknown> = new (...args: any[]) => T;
 
 /**
  * Mixin to add encoding methods

@@ -5,7 +5,7 @@
       v-slot="{ load, save }"
       type="localStorage"
     >
-      <Playground
+      <TealPlayground
         :initialData="load"
         @input="save"
       />
@@ -15,12 +15,12 @@
 
 <script lang="ts">
 import GitHubCorner from '@/components/GitHubCorner.vue'
-import Playground from '@/components/Playground.vue'
+import TealPlayground from '@/components/TealPlayground.vue'
 import Storage from '@/Storage/components/Storage'
 
 export default {
   components: {
-    Playground,
+    TealPlayground,
     GitHubCorner,
     Storage
   }

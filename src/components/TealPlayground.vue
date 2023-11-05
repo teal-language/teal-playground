@@ -1,6 +1,6 @@
 <template>
   <div class="bg-black flex flex-1">
-    <Toolbar @snippetSelected="snippet => (input = snippet.code)" />
+    <TealToolbar @snippetSelected="snippet => (input = snippet.code)" />
     <div class="flex flex-1 mt-14 bg-black overflow-scroll">
       <split-pane
         @update:size="resizeSplit"
@@ -45,7 +45,7 @@ import {
 } from '@/teal-monaco-language'
 import SplitPane from 'vue-resize-split-pane'
 
-import Toolbar from '@/components/Toolbar.vue'
+import TealToolbar from '@/components/TealToolbar.vue'
 import TealError from '@/TealError'
 
 import CompilerWorker from '@/CompilerWorker.ts?worker'
@@ -58,9 +58,9 @@ languages.register({ id: 'teal' })
 languages.setMonarchTokensProvider('teal', tealMonacoLanguage)
 languages.setLanguageConfiguration('teal', tealMonacoLanguageConfiguration)
 
-const Playground = Vue.extend({
-  name: 'Playground',
-  components: { MonacoEditor, Toolbar, SplitPane },
+const TealPlayground = Vue.extend({
+  name: 'TealPlayground',
+  components: { MonacoEditor, TealToolbar, SplitPane },
   props: {
     initialData: {
       type: Function,
@@ -105,7 +105,7 @@ const Playground = Vue.extend({
           return
         }
         this.$emit('input', newValue)
-        compilerWorker.postMessage(["compile", newValue])
+        compilerWorker.postMessage(['compile', newValue])
       }
     }
   },
@@ -126,7 +126,7 @@ const Playground = Vue.extend({
     buildErrorMarkers (model: editor.ITextModel, errors: [TealError]) {
       const markers: editor.IMarkerData[] = []
 
-      for (let err in errors) {
+      for (const err in errors) {
         const y = err.y
         const x = err.x
         const message = err.msg
@@ -183,7 +183,7 @@ const Playground = Vue.extend({
     resizeEditor (editor: editor.IStandaloneCodeEditor | null, width: number) {
       if (editor && window) {
         editor.layout({
-          width: width,
+          width,
           height: window.innerHeight
         })
       }
@@ -218,23 +218,26 @@ const Playground = Vue.extend({
 
     compilerWorker.onmessage = (msg) => {
       switch (msg.data[0]) {
-        case "compiled":
+        case 'compiled':
+        {
           const output = msg.data[1]
           const syntaxErrors = msg.data[2]
           const typeErrors = msg.data[3]
 
           this.onCompiled(output, syntaxErrors, typeErrors)
-          break;
-
-        case "error":
+          break
+        }
+        case 'error':
+        {
           const err = msg[1]
 
           console.error(err)
-          break;
+          break
+        }
       }
     }
   }
 })
 
-export default Playground
+export default TealPlayground
 </script>
