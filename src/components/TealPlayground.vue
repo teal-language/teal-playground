@@ -126,7 +126,8 @@ const TealPlayground = Vue.extend({
     buildErrorMarkers (model: editor.ITextModel, errors: [TealError]) {
       const markers: editor.IMarkerData[] = []
 
-      for (const err in errors) {
+      for (const i in errors) {
+        const err = errors[i]
         const y = err.y
         const x = err.x
         const message = err.msg
@@ -155,8 +156,8 @@ const TealPlayground = Vue.extend({
 
     getMarkers (
       model: editor.ITextModel,
-      syntaxErrors: LuaTableJs,
-      typeErrors: LuaTableJs
+      syntaxErrors: [TealError],
+      typeErrors:  [TealError]
     ): editor.IMarkerData[] {
       const markers = [
         ...this.buildErrorMarkers(model, syntaxErrors),
@@ -229,7 +230,7 @@ const TealPlayground = Vue.extend({
         }
         case 'error':
         {
-          const err = msg[1]
+          const err = msg.data[1]
 
           console.error(err)
           break
