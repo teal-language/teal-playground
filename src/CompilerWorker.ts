@@ -5,7 +5,7 @@ const tl = `
 package.path = "${import.meta.env.VITE_TL_PACKAGE_PATH_URL}"
 os = {
   getenv = function(var)
-    if var == "TL_DEBUG" then
+    if var == "TL_DEBUG" or var == "TL_DEBUG_FACTS" then
       return nil
     else
       return ''
@@ -14,8 +14,7 @@ os = {
 }
 local tl = require('tl')
 
-local env = tl.init_env(false, false, true)
-local output, result = tl.gen(%input%, env)
+local output, result = tl.gen(%input%)
 
 return { output, result.syntax_errors, result.type_errors }
 `
