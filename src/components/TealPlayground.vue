@@ -116,6 +116,7 @@ const TealPlayground = Vue.extend({
 
       if (isInput) {
         this.editorInput = editor
+        compilerWorker.postMessage(['compile', this.input])
       } else {
         this.editorOutput = editor
       }
